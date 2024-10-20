@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'bodegero.dart'; // Importa el archivo bodeguero.dart
 
 void main() {
   runApp(const MyApp());
@@ -12,21 +13,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Material App',
-      home: Scaffold(
-        backgroundColor: Color(0xFFF2F2F2), // Color de fondo del cuerpo
-        body: LoginPage(), // Llama a la nueva página con el estado
-        bottomNavigationBar: BottomAppBar(
-          color: Color(0xFF124673), // Color del footer
-          child: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Text(
-              'Sistema avanzado de gestión de insumos',
-              textAlign: TextAlign.center, // Centra el texto
-              style: TextStyle(color: Colors.white), // Texto en blanco para contrastar
-            ),
-          ),
-        ),
-      ),
+      
+      // Aquí se definen las rutas
+      routes: {
+        '/': (context) => LoginPage(), // Página inicial
+        '/bodeguero': (context) => BodegueroPage(), // Ruta para la página Bodeguero
+      },
+      
+      initialRoute: '/', // Define cuál será la ruta inicial al cargar la app
     );
   }
 }
@@ -37,13 +31,11 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // Creamos los controladores para usuario y contraseña
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   @override
   void dispose() {
-    // Limpiar los controladores cuando el widget se destruye
     _userController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -51,57 +43,59 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 50.0), // Añade espacio superior
-          child: Center(
-            child: Image.asset(
-              'assets/FONDO.png', // Ruta de la imagen
-              alignment: Alignment.center, // Centra la imagen horizontalmente
+    return Scaffold(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 50.0),
+            child: Center(
+              child: Image.asset(
+                'assets/FONDO.png', // Ruta de la imagen
+                alignment: Alignment.center,
+              ),
             ),
           ),
-        ),
-        Column(
-          children: [
-            Container(
-              width: 300, // Controla el ancho del input
-              child: TextField(
-                controller: _userController, // Asigna el controlador
-                decoration: InputDecoration(
-                  labelText: 'Usuario',
-                  border: OutlineInputBorder(),
-                ),
+          Container(
+            width: 300, 
+            child: TextField(
+              controller: _userController,
+              decoration: InputDecoration(
+                labelText: 'Usuario',
+                border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 20),
-            Container(
-              width: 300, // Controla el ancho del input
-              child: TextField(
-                controller: _passwordController, // Asigna el controlador
-                obscureText: true, // Oculta la contraseña
-                decoration: InputDecoration(
-                  labelText: 'Contraseña',
-                  border: OutlineInputBorder(),
-                ),
+          ),
+          SizedBox(height: 20),
+          Container(
+            width: 300, 
+            child: TextField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Contraseña',
+                border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                // Lógica de inicio de sesión
-                String user = _userController.text;
-                String password = _passwordController.text;
-
-                // Aquí puedes manejar la lógica del inicio de sesión
-                print('Usuario: $user');
-                print('Contraseña: $password');
-              },
-              child: Text('Ingresar'),
-            ),
-          ],
-        ),
-      ],
+          ),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              // Lógica de inicio de sesión
+              print('Usuario: ${_userController.text}');
+              print('Contraseña: ${_passwordController.text}');
+            },
+            child: Text('Ingresar'),
+          ),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              // Este boton lo coloque para probar la otra hoja, ya que como no esta programado la autenticacion voy manual nomas a la otra hoja para verla 
+              Navigator.pushNamed(context, '/bodeguero');
+            },
+            child: Text('Ir a Bodeguero'),
+          ),
+        ],
+      ),
     );
   }
 }
