@@ -47,7 +47,7 @@ class CrearInsumoPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Crear nuevo insumo'),
+        title: Text('Crear Insumo'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
