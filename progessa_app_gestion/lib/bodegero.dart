@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'crearproducto.dart';  // Asegúrate de importar la hoja crearproducto.dart
 
 class BodegueroPage extends StatelessWidget {
   @override
@@ -19,10 +20,14 @@ class BodegueroPage extends StatelessWidget {
             children: [
               SizedBox(height: 40),
               SizedBox(
-                width: 260, // Ancho aumentado del botón
+                width: 200, // Ancho fijo para el botón
                 child: ElevatedButton(
                   onPressed: () {
-                    // Aquí puede ir la lógica para crear nuevo insumo
+                    // Lógica para navegar a la página crearproducto.dart
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => CrearInsumoPage()),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20), // Mismo padding
@@ -37,7 +42,7 @@ class BodegueroPage extends StatelessWidget {
               ),
               SizedBox(height: 40), // Añadir espacio entre botones
               SizedBox(
-                width: 260, // Ancho aumentado del botón
+                width: 200, // Ancho fijo para el botón
                 child: ElevatedButton(
                   onPressed: () {
                     // Aquí puede ir la lógica para ingresar un nuevo pedido
