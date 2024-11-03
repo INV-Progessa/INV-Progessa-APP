@@ -42,4 +42,25 @@ class ApiService {
       throw Exception('Error al procesar la solicitud');
     }
   }
+
+  // Método para obtener categorías con POST
+  Future<List<dynamic>> obtenerCategorias() async {
+    final url = Uri.parse('${baseUrl}insumo_categorias');
+    final response = await http.post(
+      url,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode({}), // Si necesitas enviar un cuerpo vacío
+    );
+
+    if (response.statusCode == 200) {
+      // Decodificar la respuesta JSON
+      final List<dynamic> categorias = jsonDecode(response.body);
+      return categorias;
+    } else {
+      // Manejar otros errores
+      throw Exception('Error al obtener las categorías');
+    }
+  }
 }

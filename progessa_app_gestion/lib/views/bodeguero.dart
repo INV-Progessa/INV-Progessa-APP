@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'crearproducto.dart';  // Asegúrate de importar la hoja crearproducto.dart
+import 'crear_producto.dart';  // Asegúrate de importar la hoja crearproducto.dart
 
 class BodegueroPage extends StatelessWidget {
   @override
@@ -8,19 +8,20 @@ class BodegueroPage extends StatelessWidget {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 50.0), // Añade espacio superior
+            padding: const EdgeInsets.symmetric(vertical: 70.0), // Añade espacio superior
             child: Center(
               child: Image.asset(
-                'assets/FONDO.png', // Ruta de la imagen
-                alignment: Alignment.center, // Centra la imagen horizontalmente
+                'assets/inventory.png', // Ruta de la imagen
+                alignment: Alignment.center, 
+                width: 300,// Centra la imagen horizontalmente
               ),
             ),
           ),
           Column(
             children: [
-              SizedBox(height: 40),
+              SizedBox(height: 30),
               SizedBox(
-                width: 200, // Ancho fijo para el botón
+                width: 250, // Ancho fijo para el botón
                 child: ElevatedButton(
                   onPressed: () {
                     // Lógica para navegar a la página crearproducto.dart
@@ -37,12 +38,12 @@ class BodegueroPage extends StatelessWidget {
                       width: 2, // Grosor del contorno
                     ),
                   ),
-                  child: Text('Crear nuevo insumo'),
+                  child: Text('Crear Insumo'),
                 ),
               ),
-              SizedBox(height: 40), // Añadir espacio entre botones
+              SizedBox(height: 30), // Añadir espacio entre botones
               SizedBox(
-                width: 200, // Ancho fijo para el botón
+                width: 250, // Ancho fijo para el botón
                 child: ElevatedButton(
                   onPressed: () {
                     // Aquí puede ir la lógica para ingresar un nuevo pedido
@@ -55,7 +56,7 @@ class BodegueroPage extends StatelessWidget {
                       width: 2, // Grosor del contorno
                     ),
                   ),
-                  child: Text('Ingresar nuevo pedido'),
+                  child: Text('Actualizar Insumo'),
                 ),
               ),
             ],
@@ -67,7 +68,7 @@ class BodegueroPage extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(15.0),
           child: Text(
-            'Sistema avanzado de gestión de insumos',
+            'Sistema Avanzado de Gestión de Insumos',
             textAlign: TextAlign.center, // Centra el texto
             style: TextStyle(
               color: Colors.white, // Texto en blanco para contrastar
