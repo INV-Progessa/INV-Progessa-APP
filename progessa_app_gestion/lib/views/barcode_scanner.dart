@@ -1,14 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-class BarcodeScannerPage extends StatelessWidget {
+class BarcodeScannerPage extends StatefulWidget {
+  @override
+  _BarcodeScannerPageState createState() => _BarcodeScannerPageState();
+}
+
+class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   final MobileScannerController cameraController = MobileScannerController();
+  bool _isScanning = true; // Controla si el escáner ya ha capturado un código
+
+  @override
+  void dispose() {
+    cameraController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Lector de Codigos'),
+        title: Text('Lector de Códigos'),
         actions: [
           IconButton(
             icon: Icon(Icons.flash_on),
@@ -21,10 +33,13 @@ class BarcodeScannerPage extends StatelessWidget {
           MobileScanner(
             controller: cameraController,
             onDetect: (barcode) {
-              if (barcode.barcodes.isNotEmpty) {
+              if (_isScanning && barcode.barcodes.isNotEmpty) {
                 final String? code = barcode.barcodes.first.rawValue;
                 if (code != null) {
-                  Navigator.pop(context, code); // Return the scanned code
+                  setState(() {
+                    _isScanning = false; // Evita múltiples lecturas
+                  });
+                  Navigator.pop(context, code); // Retorna a la página anterior
                 }
               }
             },
@@ -43,15 +58,13 @@ class QRScannerOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Adjust the scan area to a rectangular shape
-    double scanAreaWidth = MediaQuery.of(context).size.width * 0.8; // Width for rectangular shape
-    double scanAreaHeight = scanAreaWidth * 0.6; // Adjust height to make it rectangular
+    double scanAreaWidth = MediaQuery.of(context).size.width * 0.8;
+    double scanAreaHeight = scanAreaWidth * 0.6;
 
     return Stack(
       children: [
         ColorFiltered(
-          colorFilter: ColorFilter.mode(
-              overlayColour, BlendMode.srcOut), // Creates the hole effect
+          colorFilter: ColorFilter.mode(overlayColour, BlendMode.srcOut),
           child: Stack(
             children: [
               Container(
@@ -67,7 +80,7 @@ class QRScannerOverlay extends StatelessWidget {
                   width: scanAreaWidth,
                   decoration: BoxDecoration(
                     color: Colors.black,
-                    borderRadius: BorderRadius.circular(12), // Slightly rounded corners
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
@@ -103,7 +116,7 @@ class BorderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     const width = 4.0;
-    const radius = 12.0; // Adjusted for a more rectangular border
+    const radius = 12.0;
     const tRadius = 3 * radius;
     final rect = Rect.fromLTWH(
       width,

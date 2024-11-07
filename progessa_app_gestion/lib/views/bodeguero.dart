@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'crear_producto.dart';  // Asegúrate de importar la hoja crearproducto.dart
+  // Asegúrate de importar la hoja crearproducto.dart
 
 class BodegueroPage extends StatelessWidget {
   @override
@@ -13,7 +13,7 @@ class BodegueroPage extends StatelessWidget {
               child: Image.asset(
                 'assets/inventory.png', // Ruta de la imagen
                 alignment: Alignment.center, 
-                width: 300,// Centra la imagen horizontalmente
+                width: 230,// Centra la imagen horizontalmente
               ),
             ),
           ),
@@ -25,10 +25,7 @@ class BodegueroPage extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {
                     // Lógica para navegar a la página crearproducto.dart
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => CrearInsumoPage()),
-                    );
+                    Navigator.pushNamed(context, '/crear_producto');
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20), // Mismo padding
@@ -46,7 +43,7 @@ class BodegueroPage extends StatelessWidget {
                 width: 250, // Ancho fijo para el botón
                 child: ElevatedButton(
                   onPressed: () {
-                    // Aquí puede ir la lógica para ingresar un nuevo pedido
+                    Navigator.pushNamed(context, '/actualizar_insumo');
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20), // Mismo padding
@@ -57,6 +54,24 @@ class BodegueroPage extends StatelessWidget {
                     ),
                   ),
                   child: Text('Actualizar Insumo'),
+                ),
+              ),
+              SizedBox(height: 30), // Añadir espacio entre botones
+              SizedBox(
+                width: 250, // Ancho fijo para el botón
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/lista_insumo');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20), // Mismo padding
+                    textStyle: TextStyle(fontSize: 20), // Mismo tamaño de texto
+                    side: BorderSide(
+                      color: Colors.black, // Color del contorno
+                      width: 2, // Grosor del contorno
+                    ),
+                  ),
+                  child: Text('Lista de Insumos'),
                 ),
               ),
             ],

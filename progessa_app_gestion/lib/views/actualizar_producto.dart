@@ -1,45 +1,86 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/insumos_provider.dart';
+import '../services/api_service.dart';
+import 'barcode_scanner.dart';
 
-class CrearInsumoPage extends StatelessWidget {
+class ActualizarInsumoPage extends StatefulWidget {
+  @override
+  _ActualizarInsumoPageState createState() => _ActualizarInsumoPageState();
+}
+
+class _ActualizarInsumoPageState extends State<ActualizarInsumoPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nombreController = TextEditingController();
-  final TextEditingController _descripcionController = TextEditingController();
-  final TextEditingController _codigoController = TextEditingController();
   final TextEditingController _cantidadController = TextEditingController();
-  String? _categoriaSeleccionada;
+  final TextEditingController _nombreProductoController = TextEditingController();
+  String? _codigoBarra;
+  Map<String, dynamic>? _insumoData;
 
-  // Función para enviar datos a la API
-  Future<void> _crearInsumo() async {
-    final url = ''; // URL vacía por ahora
-    if (url.isEmpty) {
-      // Si la URL está vacía, simplemente no hace nada
-      print('URL no configurada, no se enviaron los datos');
-      return;
-    }
+  @override
+  void dispose() {
+    _cantidadController.dispose();
+    _nombreProductoController.dispose();
+    super.dispose();
+  }
 
-    final uri = Uri.parse(url);
-    final response = await http.post(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({
-        'nombre': _nombreController.text,
-        'descripcion': _descripcionController.text,
-        'codigo': _codigoController.text,
-        'cantidad': int.parse(_cantidadController.text),
-        'categoria': _categoriaSeleccionada,
-      }),
+  Future<void> _scanBarcode() async {
+    final insumosProvider = Provider.of<InsumosProvider>(context, listen: false);
+    await insumosProvider.fetchInsumos();
+
+    final scannedCode = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BarcodeScannerPage(),
+      ),
     );
 
-    if (response.statusCode == 201) {
-      // Insumo creado con éxito
-      print('Insumo creado con éxito');
+    if (scannedCode != null) {
+      setState(() {
+        _codigoBarra = scannedCode;
+      });
+      _buscarInsumo();
+    }
+  }
+
+  Future<void> _buscarInsumo() async {
+    final insumosProvider = Provider.of<InsumosProvider>(context, listen: false);
+    await insumosProvider.fetchInsumos();
+
+    final insumo = insumosProvider.insumos.firstWhere(
+      (element) => element['codigo_barra'] == _codigoBarra,
+      orElse: () => <String, dynamic>{},
+    );
+
+    if (insumo.isNotEmpty) {
+      setState(() {
+        _insumoData = insumo;
+        _nombreProductoController.text = insumo['nombre'];
+      });
     } else {
-      // Error al crear el insumo
-      print('Error al crear insumo: ${response.statusCode}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Producto no encontrado')),
+      );
+    }
+  }
+
+  Future<void> _actualizarInsumo() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final idUsuarioModificador = authProvider.idUsuario;
+
+    if (_formKey.currentState!.validate() && _codigoBarra != null && idUsuarioModificador != null) {
+      try {
+        await ApiService().actualizarInsumo(
+          _codigoBarra!,
+          int.parse(_cantidadController.text),
+          idUsuarioModificador,
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Insumo actualizado con éxito')),
+        );
+      } catch (e) {
+        print('Error al actualizar insumo: $e');
+      }
     }
   }
 
@@ -47,7 +88,7 @@ class CrearInsumoPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Crear Insumo'),
+        title: Text('Actualizar Insumo'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -57,57 +98,24 @@ class CrearInsumoPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextFormField(
-                controller: _nombreController,
+                controller: _nombreProductoController,
                 decoration: InputDecoration(
-                  labelText: 'Nombre del insumo',
+                  labelText: 'Nombre del Producto',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa un nombre';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-              TextFormField(
-                controller: _descripcionController,
-                decoration: InputDecoration(
-                  labelText: 'Descripción',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa una descripción';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-              TextFormField(
-                controller: _codigoController,
-                decoration: InputDecoration(
-                  labelText: 'Código',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa un código';
-                  }
-                  return null;
-                },
+                readOnly: true,
               ),
               SizedBox(height: 20),
               TextFormField(
                 controller: _cantidadController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: 'Cantidad',
+                  labelText: 'Cantidad Nueva',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa la cantidad';
+                    return 'Por favor ingresa la nueva cantidad';
                   }
                   if (int.tryParse(value) == null) {
                     return 'Por favor ingresa un número válido';
@@ -116,40 +124,27 @@ class CrearInsumoPage extends StatelessWidget {
                 },
               ),
               SizedBox(height: 20),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Categoría',
-                  border: OutlineInputBorder(),
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: _scanBarcode,
+                  icon: Icon(Icons.camera_alt),
+                  label: Text('Escanear Código de Barras'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 48), // Tamaño igual que el botón de actualizar
+                  ),
                 ),
-                items: <String>['Categoría 1', 'Categoría 2', 'Categoría 3']
-                    .map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  _categoriaSeleccionada = newValue;
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor selecciona una categoría';
-                  }
-                  return null;
-                },
               ),
               SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _crearInsumo(); // Llama a la función para crear el insumo
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Insumo creado con éxito')),
-                      );
-                    }
-                  },
-                  child: Text('Crear insumo'),
+                  onPressed: _actualizarInsumo,
+                  child: Text(
+                    'Actualizar Insumo',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 48), // Tamaño del botón de actualizar
+                  ),
                 ),
               ),
             ],

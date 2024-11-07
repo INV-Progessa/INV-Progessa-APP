@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'barcode_scanner.dart'; // Import the barcode scanner page
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/category_provider.dart';
+import '../services/api_service.dart';
+import 'barcode_scanner.dart';
 
 class CrearInsumoPage extends StatefulWidget {
   @override
@@ -14,34 +16,34 @@ class _CrearInsumoPageState extends State<CrearInsumoPage> {
   final TextEditingController _descripcionController = TextEditingController();
   final TextEditingController _codigoController = TextEditingController();
   final TextEditingController _cantidadController = TextEditingController();
-  String? _categoriaSeleccionada;
+  int? _categoriaSeleccionada;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => Provider.of<CategoryProvider>(context, listen: false).fetchCategories());
+  }
 
   Future<void> _crearInsumo() async {
-    final url = ''; // Add your API endpoint URL here
-    if (url.isEmpty) {
-      print('URL no configurada, no se enviaron los datos');
-      return;
-    }
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final idUsuarioCreador = authProvider.idUsuario;
 
-    final uri = Uri.parse(url);
-    final response = await http.post(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({
-        'nombre': _nombreController.text,
-        'descripcion': _descripcionController.text,
-        'codigo': _codigoController.text,
-        'cantidad': int.parse(_cantidadController.text),
-        'categoria': _categoriaSeleccionada,
-      }),
-    );
-
-    if (response.statusCode == 201) {
-      print('Insumo creado con éxito');
-    } else {
-      print('Error al crear insumo: ${response.statusCode}');
+    if (_formKey.currentState!.validate() && idUsuarioCreador != null) {
+      try {
+        await ApiService().crearInsumo(
+          _nombreController.text,
+          _descripcionController.text,
+          _codigoController.text,
+          int.parse(_cantidadController.text),
+          _categoriaSeleccionada!,
+          idUsuarioCreador,
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Insumo creado con éxito')),
+        );
+      } catch (e) {
+        print('Error al crear insumo: $e');
+      }
     }
   }
 
@@ -117,7 +119,7 @@ class _CrearInsumoPageState extends State<CrearInsumoPage> {
                   border: OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(Icons.camera_alt),
-                    onPressed: _scanBarcode, // Opens the barcode scanner
+                    onPressed: _scanBarcode,
                   ),
                 ),
                 validator: (value) {
@@ -146,41 +148,37 @@ class _CrearInsumoPageState extends State<CrearInsumoPage> {
                 },
               ),
               SizedBox(height: 20),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Categoría',
-                  border: OutlineInputBorder(),
-                ),
-                items: <String>['Categoría 1', 'Categoría 2', 'Categoría 3']
-                    .map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
+              Consumer<CategoryProvider>(
+                builder: (context, categoryProvider, child) {
+                  return DropdownButtonFormField<int>(
+                    decoration: InputDecoration(
+                      labelText: 'Categoría',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: categoryProvider.categories
+                        .map((category) => DropdownMenuItem<int>(
+                              value: category['id_categoria'],
+                              child: Text(category['descripcion_categoria']),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _categoriaSeleccionada = value;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null) {
+                        return 'Por favor selecciona una categoría';
+                      }
+                      return null;
+                    },
                   );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _categoriaSeleccionada = newValue;
-                  });
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor selecciona una categoría';
-                  }
-                  return null;
                 },
               ),
               SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _crearInsumo();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Insumo creado con éxito')),
-                      );
-                    }
-                  },
+                  onPressed: _crearInsumo,
                   child: Text(
                     'Crear insumo',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
