@@ -36,13 +36,12 @@ class _ListaInsumosPageState extends State<ListaInsumosPage> {
   }
 
   Future<void> _exportToExcel() async {
-    // Verificar y solicitar permisos de almacenamiento
-    if (await Permission.storage.request().isGranted) {
+    // Solicitar permisos de almacenamiento
+    if (await _requestPermission()) {
       final insumosProvider = Provider.of<InsumosProvider>(context, listen: false);
       var excel = Excel.createExcel();
-       // Eliminar la hoja predeterminada "Sheet1"
-      final sheet = excel['Insumos'];
       excel.delete('Sheet1');
+      final sheet = excel['Insumos'];
 
       // Agregar encabezados
       sheet.appendRow([
@@ -66,26 +65,38 @@ class _ListaInsumosPageState extends State<ListaInsumosPage> {
         ]);
       }
 
-      // Guardar el archivo Excel en una ubicación accesible
-      final directory = await getExternalStorageDirectory();
-      if (directory != null) {
-        final path = '${directory.path}/insumos_export.xlsx';
-        final File file = File(path)
-          ..createSync(recursive: true)
-          ..writeAsBytesSync(excel.encode()!);
-
-        // Abrir el archivo automáticamente
-        await OpenFile.open(path);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No se pudo acceder a la ubicación de almacenamiento')),
-        );
+      // Guardar el archivo Excel en la carpeta de Descargas
+      final directory = Directory('/storage/emulated/0/Download');
+      if (!await directory.exists()) {
+        await directory.create(recursive: true);
       }
+      final path = '${directory.path}/insumos_export.xlsx';
+      final File file = File(path)
+        ..createSync(recursive: true)
+        ..writeAsBytesSync(excel.encode()!);
+
+      // Abrir el archivo automáticamente
+      await OpenFile.open(path);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Permiso de almacenamiento denegado')),
       );
     }
+  }
+
+  Future<bool> _requestPermission() async {
+    if (Platform.isAndroid) {
+      if (await Permission.manageExternalStorage.request().isGranted) {
+        return true;
+      } else {
+        final status = await Permission.manageExternalStorage.status;
+        if (status.isDenied || status.isPermanentlyDenied) {
+          openAppSettings();
+        }
+        return false;
+      }
+    }
+    return false;
   }
 
   @override
@@ -132,30 +143,11 @@ class _ListaInsumosPageState extends State<ListaInsumosPage> {
                             ),
                           ),
                           SizedBox(height: 8),
-                          Text(
-                            'Categoría: ${insumo['descripcion_categoria']}',
-                            style: TextStyle(color: Colors.grey[700]),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Código de Barra: ${insumo['codigo_barra']}',
-                            style: TextStyle(color: Colors.grey[700]),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Cantidad Disponible: ${insumo['cantidad_disponible']}',
-                            style: TextStyle(color: Colors.grey[700]),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Fecha de Creación: ${_formatDate(insumo['fecha_creacion'])}',
-                            style: TextStyle(color: Colors.grey[700]),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Última Modificación: ${_formatDate(insumo['fecha_modificacion'])}',
-                            style: TextStyle(color: Colors.grey[700]),
-                          ),
+                          Text('Categoría: ${insumo['descripcion_categoria']}'),
+                          Text('Código de Barra: ${insumo['codigo_barra']}'),
+                          Text('Cantidad Disponible: ${insumo['cantidad_disponible']}'),
+                          Text('Fecha de Creación: ${_formatDate(insumo['fecha_creacion'])}'),
+                          Text('Última Modificación: ${_formatDate(insumo['fecha_modificacion'])}'),
                         ],
                       ),
                     ),

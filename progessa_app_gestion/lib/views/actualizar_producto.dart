@@ -82,6 +82,9 @@ class _ActualizarInsumoPageState extends State<ActualizarInsumoPage> {
         print('Error al actualizar insumo: $e');
       }
     }
+
+    _nombreProductoController.text = "";
+
   }
 
   @override

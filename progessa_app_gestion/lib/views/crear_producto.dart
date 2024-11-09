@@ -44,6 +44,11 @@ class _CrearInsumoPageState extends State<CrearInsumoPage> {
       } catch (e) {
         print('Error al crear insumo: $e');
       }
+      _nombreController.text = "";
+      _descripcionController.text = "";
+      _codigoController.text = "";
+      _cantidadController.text = "";
+      _categoriaSeleccionada = 0;
     }
   }
 
